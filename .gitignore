@@ -3,7 +3,8 @@
 .DS_Store
 .AppleDouble
 .LSOverride
-Icon[]
+Icon[
+]
 
 # Thumbnails
 ._*
@@ -62,3 +63,10 @@ go.work.sum
 
 # env file
 .env
+
+
+##########
+.air.toml
+tmp/
+.vscode/
+http/

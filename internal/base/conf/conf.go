@@ -14,10 +14,9 @@ type Server struct {
 	HTTP *server.HTTP `yaml:"http" json:"http"`
 }
 
-func ReadConfig(path string) (c *AllConfig, err error) {
+func ReadConfig(configFilePath string) (c *AllConfig, err error) {
 	v := viper.New()
-	v.SetConfigFile(path)
-
+	v.SetConfigFile(configFilePath)
 	if err = v.ReadInConfig(); err != nil {
 		return nil, err
 	}

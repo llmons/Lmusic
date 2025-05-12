@@ -10,11 +10,17 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/llmons/Lmusic/internal/base/conf"
 	"github.com/llmons/Lmusic/internal/base/server"
+	"github.com/llmons/Lmusic/internal/controller"
+	"github.com/llmons/Lmusic/internal/router"
+	"github.com/llmons/Lmusic/internal/service"
 )
 
 // Injectors from wire.go:
 
 func initApplication(debug bool, serverConf *conf.Server) (*gin.Engine, error) {
-	engine := server.NewHTTPServer(debug)
+	neteaseService := service.NewNeteaseService()
+	neteaseController := controller.NewNeteaseController(neteaseService)
+	apiRouter := router.NewAPIRouter(neteaseController)
+	engine := server.NewHTTPServer(debug, apiRouter)
 	return engine, nil
 }

@@ -1,10 +1,10 @@
 package tencent
 
 type UrlResp struct {
-	Req_0 Req_0 `json:"req_0"`
+	Req0Resp Req0Resp `json:"req_0"`
 }
 
-type Req_0 struct {
+type Req0Resp struct {
 	Data UrlData `json:"data"`
 }
 

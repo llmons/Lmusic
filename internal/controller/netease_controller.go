@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/llmons/Lmusic/internal/service"
 )
@@ -15,11 +17,12 @@ func NewNeteaseController(neteaseService *service.NeteaseService) *NeteaseContro
 	}
 }
 
-func (n *NeteaseController) GetSong(ctx *gin.Context) {
+func (nc *NeteaseController) GetSong(ctx *gin.Context) {
 	id := ctx.Param("id")
-	song, err := n.neteaseService.GetSong(id)
+	song, err := nc.neteaseService.GetSong(id)
 	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(200, song)
+	ctx.JSON(http.StatusOK, song)
 }

@@ -6,15 +6,18 @@ import (
 )
 
 type APIRouter struct {
-	NeteaseController *controller.NeteaseController
+	neteaseController *controller.NeteaseController
+	tencentController *controller.TencentController
 }
 
-func NewAPIRouter(neteaseController *controller.NeteaseController) *APIRouter {
+func NewAPIRouter(neteaseController *controller.NeteaseController, tencentController *controller.TencentController) *APIRouter {
 	return &APIRouter{
-		NeteaseController: neteaseController,
+		neteaseController: neteaseController,
+		tencentController: tencentController,
 	}
 }
 
 func (a *APIRouter) RegisterRouter(r *gin.RouterGroup) {
-	r.GET("/netease/song/:id", a.NeteaseController.GetSong)
+	r.GET("/netease/song/:id", a.neteaseController.GetSong)
+	r.GET("/tencent/song/:id", a.tencentController.GetSong)
 }

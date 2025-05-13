@@ -20,7 +20,9 @@ import (
 func initApplication(debug bool, serverConf *conf.Server) (*gin.Engine, error) {
 	neteaseService := service.NewNeteaseService()
 	neteaseController := controller.NewNeteaseController(neteaseService)
-	apiRouter := router.NewAPIRouter(neteaseController)
+	tencentService := service.NewTencentService()
+	tencentController := controller.NewTencentController(tencentService)
+	apiRouter := router.NewAPIRouter(neteaseController, tencentController)
 	engine := server.NewHTTPServer(debug, apiRouter)
 	return engine, nil
 }

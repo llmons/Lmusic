@@ -19,5 +19,7 @@ func NewAPIRouter(neteaseController *controller.NeteaseController, tencentContro
 
 func (a *APIRouter) RegisterRouter(r *gin.RouterGroup) {
 	r.GET("/netease/song/:id", a.neteaseController.GetSong)
+	r.GET("/netease/playlist/:id", a.neteaseController.GetPlaylist)
+
 	r.GET("/tencent/song/:id", a.tencentController.GetSong)
 }

@@ -19,10 +19,13 @@ func NewNeteaseService() *NeteaseService {
 }
 
 func (s *NeteaseService) GetSong(id string) (song common.Song, err error) {
-	song.Name, song.Artist, song.Picture, err = s.getSongInfo(id)
+	idArr := []string{id}
+	names, artists, picUrls, err := s.getSongInfo(idArr)
 	if err != nil {
 		return
 	}
+
+	song.Name, song.Artist, song.Picture = names[0], artists[0], picUrls[0]
 
 	song.Url, err = s.getSongUrl(id)
 	if err != nil {
@@ -37,12 +40,76 @@ func (s *NeteaseService) GetSong(id string) (song common.Song, err error) {
 	return
 }
 
-func (s *NeteaseService) getSongInfo(id string) (name string, artist string, picurl string, err error) {
-	endpoint := "http://music.163.com/api/v3/song/detail/"
+func (s *NeteaseService) GetPlaylist(id string) (playlist common.Playlist, err error) {
+	endpoint := "http://music.163.com/api/v6/playlist/detail"
 
 	// new request with body
 	form := url.Values{}
-	form.Set("c", fmt.Sprintf(`[{"id":%s,"v":0}]`, id))
+	form.Set("s", "0")
+	form.Set("id", id)
+	form.Set("n", "1000")
+	form.Set("t", "0")
+	req, err := http.NewRequest("POST", endpoint, strings.NewReader(form.Encode()))
+	if err != nil {
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	// handle response
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+	var result netease.PlaylistResp
+	if err = json.Unmarshal(body, &result); err != nil {
+		return
+	}
+
+	idArr := make([]string, len(result.Playlist.TrackIDs))
+	playlist = make(common.Playlist, len(result.Playlist.TrackIDs))
+	for i, song := range result.Playlist.TrackIDs {
+		idArr[i] = fmt.Sprintf("%d", song.ID)
+		playlist[i].ID = fmt.Sprintf("%d", song.ID)
+	}
+
+	names, artists, picUrls, err := s.getSongInfo(idArr)
+	if err != nil {
+		return
+	}
+
+	for i := range result.Playlist.TrackIDs {
+		playlist[i].Name = names[i]
+		playlist[i].Artist = artists[i]
+		playlist[i].Picture = picUrls[i]
+	}
+
+	return
+}
+
+func (s *NeteaseService) getSongInfo(idArr []string) (names []string, artists []string, picUrls []string, err error) {
+	endpoint := "http://music.163.com/api/v3/song/detail/"
+
+	// new request with body
+	var songList strings.Builder
+	songList.WriteString("[")
+	for i, id := range idArr {
+		songList.WriteString(fmt.Sprintf("{id:%s,v:0}", id))
+		if i < len(idArr)-1 {
+			songList.WriteString(",")
+		}
+	}
+	songList.WriteString("]")
+
+	form := url.Values{}
+	form.Set("c", songList.String())
 	req, err := http.NewRequest("POST", endpoint, strings.NewReader(form.Encode()))
 	if err != nil {
 		return
@@ -67,9 +134,11 @@ func (s *NeteaseService) getSongInfo(id string) (name string, artist string, pic
 		return
 	}
 
-	name = result.Songs[0].Name
-	artist = result.Songs[0].Artists[0].Name
-	picurl = result.Songs[0].Album.PicUrl
+	for _, song := range result.Songs {
+		names = append(names, song.Name)
+		artists = append(artists, song.Artists[0].Name)
+		picUrls = append(picUrls, song.Album.PicUrl)
+	}
 	return
 }
 

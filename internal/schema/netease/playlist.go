@@ -1,6 +1,8 @@
 package netease
 
-type PlaylistResp struct{}
+type PlaylistResp struct {
+	Playlist Playlist `json:"playlist"`
+}
 
 type Playlist struct {
 	TrackIDs []TrackID `json:"trackIds"`

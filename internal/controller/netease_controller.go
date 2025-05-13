@@ -26,3 +26,13 @@ func (nc *NeteaseController) GetSong(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, song)
 }
+
+func (nc *NeteaseController) GetPlaylist(ctx *gin.Context) {
+	id := ctx.Param("id")
+	playlist, err := nc.neteaseService.GetPlaylist(id)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, playlist)
+}

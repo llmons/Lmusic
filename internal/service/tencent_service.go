@@ -39,6 +39,47 @@ func (s *TencentService) GetSong(id string) (song common.Song, err error) {
 	return
 }
 
+func (s *TencentService) GetPlaylist(id string) (playlist common.Playlist, err error) {
+	endpoint := "https://c.y.qq.com/v8/fcg-bin/fcg_v8_playlist_cp.fcg"
+
+	// new request
+	params := url.Values{}
+	params.Set("id", id)
+	params.Set("format", "json")
+	params.Set("newsong", "1")
+	params.Set("platform", "jqspaframe.json")
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s?%s", endpoint, params.Encode()), nil)
+	if err != nil {
+		return
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	// handle response
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+	var result tencent.PlaylistResp
+	if err = json.Unmarshal(body, &result); err != nil {
+		return
+	}
+
+	playlist = make(common.Playlist, len(result.Data.CDlist[0].Songlist))
+	for i, song := range result.Data.CDlist[0].Songlist {
+		playlist[i].ID = song.Mid
+		playlist[i].Name = song.Name
+		playlist[i].Artist = song.Singer[0].Name
+		playlist[i].Picture = fmt.Sprintf("https://y.gtimg.cn/music/photo_new/T002R300x300M000%s.jpg", song.Album.Mid)
+	}
+	return
+}
+
 func (s *TencentService) getSongInfo(id string) (name string, artist string, picurl string, err error) {
 	endpoint := "https://c.y.qq.com/v8/fcg-bin/fcg_play_single_song.fcg"
 

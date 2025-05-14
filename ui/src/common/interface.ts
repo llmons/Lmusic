@@ -5,3 +5,10 @@ export interface Song {
   url: string;
   lrc: string;
 }
+
+export interface SimpleSong {
+  id: string;
+  name: string;
+  artist: string;
+  picurl: string;
+}

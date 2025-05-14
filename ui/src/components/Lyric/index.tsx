@@ -5,17 +5,17 @@ import { motion } from 'framer-motion';
 import { usePlayerStore } from '@/stores/player';
 
 export default function Lyric() {
-  const lyric = usePlayerStore((state) => state.currentSong.lrc);
+  const rawLyric = usePlayerStore((state) => state.currentSong.lrc);
   const progress = usePlayerStore((state) => state.progress);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(0);
 
-  // 解析歌词为 [{ time, text }]
-  const lyrics = useMemo(() => {
-    if (!lyric) return [];
+  const lyric = useMemo(() => {
+    if (!rawLyric) return [];
 
-    return lyric
+    return rawLyric
       .split('\n')
       .map((line) => {
         const match = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
@@ -27,38 +27,39 @@ export default function Lyric() {
         return { time, text };
       })
       .filter(Boolean) as { time: number; text: string }[];
-  }, [lyric]);
+  }, [rawLyric]);
 
-  // 根据进度设置当前歌词索引
   useEffect(() => {
-    if (!lyrics.length) return;
+    if (containerRef.current) {
+      setContainerHeight(containerRef.current.clientHeight);
+    }
+  }, []);
 
-    const index = lyrics.findIndex(
+  useEffect(() => {
+    if (!lyric.length) return;
+
+    const index = lyric.findIndex(
       (item, i) =>
         progress >= item.time &&
-        (i === lyrics.length - 1 || progress < lyrics[i + 1].time)
+        (i === lyric.length - 1 || progress < lyric[i + 1].time)
     );
 
     if (index !== -1 && index !== currentIndex) {
       setCurrentIndex(index);
     }
-  }, [progress, lyrics, currentIndex]);
-
-  if (!lyrics.length) {
-    return (
-      <div className='flex justify-center items-center h-[50vh] text-gray-400'></div>
-    );
-  }
+  }, [progress, lyric, currentIndex]);
 
   return (
     <div
-      className='relative overflow-hidden h-[50vh] flex items-center justify-center'
+      className='overflow-hidden h-[70vh] flex items-start justify-center w-full'
       ref={containerRef}>
       <motion.div
         className='flex flex-col items-center'
-        animate={{ y: -currentIndex * 48 }} // 每行高度
+        animate={{
+          y: containerHeight / 2 - 48 / 2 - currentIndex * 48,
+        }}
         transition={{ type: 'spring', stiffness: 80, damping: 20 }}>
-        {lyrics.map((item, index) => (
+        {lyric.map((item, index) => (
           <div
             key={index}
             className={`h-12 leading-[48px] transition-all duration-300 ${

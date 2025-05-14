@@ -55,7 +55,7 @@ export default function Playlist({ playlistProp }: PlaylistProps) {
       <DrawerContent>
         <div className='mx-auto w-full max-w-sm'>
           <DrawerHeader>
-            <DrawerTitle>播放列表{drawerOpen ? 1 : 0}</DrawerTitle>
+            <DrawerTitle>播放列表</DrawerTitle>
             <DrawerDescription className='sr-only'>播放列表</DrawerDescription>
           </DrawerHeader>
           <div className='p-4 pb-0'>
@@ -81,7 +81,7 @@ export default function Playlist({ playlistProp }: PlaylistProps) {
                       alt='cover'
                       width={50}
                       height={50}
-                      className='w-[50px] h-[50px] rounded-md object-cover'
+                      className='w-[50px] h-[50px] rounded-md object-cover shadow-md'
                     />
                     <div className='flex flex-col ml-2'>
                       <span className='font-bold'>{song.name}</span>

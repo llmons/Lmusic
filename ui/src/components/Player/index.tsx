@@ -23,6 +23,7 @@ import {
   ReloadIcon,
 } from '@radix-ui/react-icons';
 import { usePlaylistStore } from '@/stores/playlist';
+import { formatTime } from '@/util/util';
 
 export default function Player() {
   const isVIP = usePlayerStore((state) => state.isVIP);
@@ -122,10 +123,10 @@ export default function Player() {
     );
 
   return (
-    <Card className='fixed bottom-10 z-50 bg-white shadow-lg rounded-t-lg'>
+    <Card className='fixed bottom-10 z-50 bg-white shadow-lg rounded-2xl p-2'>
       <Badge
         variant='destructive'
-        className='absolute top-5 right-5'
+        className='absolute top-2 right-2'
         hidden={!isVIP}>
         VIP
       </Badge>
@@ -163,24 +164,30 @@ export default function Player() {
         </div>
 
         {/* Music Info */}
-        <div className='grow flex flex-col items-center justify-center gap-3'>
-          <div className='flex items-center justify-between w-full p-2'>
+        <div className='grow flex flex-col items-center justify-center gap-1'>
+          <div className='flex items-center justify-between w-full py-2 px-4'>
             <Image
               src={picture}
               alt='cover'
               width={70}
               height={70}
-              className='w-[70px] h-[70px] rounded-md object-cover'
+              className='w-[70px] h-[70px] rounded-md object-cover shadow-md'
             />
             <div className='grow flex flex-col items-center justify-center'>
               <span className='font-bold'>{name}</span>
               <span className='text-sm text-gray-500'>{artist}</span>
             </div>
           </div>
-          <Progress value={Math.min((progress / duration) * 100, 100)} />
-          <span className='hidden'>
-            {progress}/{duration}
-          </span>
+          <div className='flex items-center justify-center w-full gap-2'>
+            <Progress
+              value={Math.min((progress / duration) * 100, 100)}
+              className='grow h-3'
+            />
+            <span className='text-sm text-gray-500'>
+              {formatTime(progress)}/{formatTime(duration)}
+            </span>
+          </div>
+
           {url && <audio src={url} ref={audioRef}></audio>}
         </div>
 

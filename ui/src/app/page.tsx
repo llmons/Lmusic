@@ -1,8 +1,5 @@
 import { SimpleSong } from '@/common/interface';
-import Lyric from '@/components/Lyric';
-import Player from '@/components/Player';
-import Playlist from '@/components/Playlist';
-import { Drawer } from '@/components/ui/drawer';
+import Client from './client';
 
 export default async function Home() {
   const playlistResp = await fetch(
@@ -15,15 +12,7 @@ export default async function Home() {
 
   return (
     <div className='flex justify-center items-center h-screen'>
-      <main className='flex container mx-auto items-center justify-center h-full'>
-        <Drawer direction='right'>
-          <div className='flex items-center justify-center flex-col w-full h-full'>
-            <Lyric />
-            <Player />
-          </div>
-          <Playlist playlistProp={playlist} />
-        </Drawer>
-      </main>
+      <Client playlist={playlist} />
     </div>
   );
 }

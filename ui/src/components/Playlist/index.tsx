@@ -2,7 +2,7 @@
 
 import { SimpleSong } from '@/common/interface';
 import { usePlaylistStore } from '@/stores/playlist';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import {
   DrawerContent,
@@ -11,6 +11,7 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useCommonStore } from '@/stores/common';
 
 type PlaylistProps = {
   playlistProp: SimpleSong[];
@@ -18,28 +19,43 @@ type PlaylistProps = {
 
 export default function Playlist({ playlistProp }: PlaylistProps) {
   const playlist = usePlaylistStore((state) => state.playlist);
+  const currSongIdx = usePlaylistStore((state) => state.currSongIdx);
   const setPlalist = usePlaylistStore((state) => state.setPlaylist);
-  const setCurrentSongIndex = usePlaylistStore((state) => state.setCurrSongIdx);
+  const setCurrSongIdx = usePlaylistStore((state) => state.setCurrSongIdx);
+
+  const drawerOpen = useCommonStore((state) => state.drawerOpen);
+
   const [loading, setLoading] = useState(true);
+  const currentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setPlalist(playlistProp);
     setLoading(false);
   }, [playlistProp, setPlalist]);
 
-  if (loading)
-    return (
-      <div className='flex justify-center items-center'>
-        <div>Loading...</div>
-      </div>
-    );
+  useEffect(() => {
+    if (!drawerOpen) return;
+
+    const timeout = setTimeout(() => {
+      if (currentRef.current) {
+        currentRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+        });
+      }
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [currSongIdx, drawerOpen]);
+
+  if (loading) return <div className='flex justify-center items-center'></div>;
 
   return (
     <div className='flex flex-col items-center justify-center'>
       <DrawerContent>
         <div className='mx-auto w-full max-w-sm'>
           <DrawerHeader>
-            <DrawerTitle>播放列表</DrawerTitle>
+            <DrawerTitle>播放列表{drawerOpen ? 1 : 0}</DrawerTitle>
             <DrawerDescription className='sr-only'>播放列表</DrawerDescription>
           </DrawerHeader>
           <div className='p-4 pb-0'>
@@ -49,9 +65,16 @@ export default function Playlist({ playlistProp }: PlaylistProps) {
                   key={index}
                   className='flex items-center justify-between w-full p-2 '>
                   <div
-                    className='flex items-center gap-3 w-[90%] p-2 hover:bg-gray-100 hover:cursor-pointer'
+                    ref={(el) => {
+                      if (index === currSongIdx) currentRef.current = el;
+                    }}
+                    className={
+                      index === currSongIdx
+                        ? 'flex items-center gap-3 w-[90%] p-2 rounded-md bg-gray-200 hover:cursor-pointer'
+                        : 'flex items-center gap-3 w-[90%] p-2 rounded-md hover:bg-gray-100 hover:cursor-pointer'
+                    }
                     onClick={() => {
-                      setCurrentSongIndex(index);
+                      setCurrSongIdx(index);
                     }}>
                     <Image
                       src={song.picurl}

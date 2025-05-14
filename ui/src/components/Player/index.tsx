@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { DrawerTrigger } from '@/components/ui/drawer';
+import { Badge } from '@/components/ui/badge';
 import {
   TrackPreviousIcon,
   TrackNextIcon,
@@ -19,11 +20,14 @@ import {
   SpeakerQuietIcon,
   SpeakerOffIcon,
   HamburgerMenuIcon,
+  ReloadIcon,
 } from '@radix-ui/react-icons';
 import { usePlaylistStore } from '@/stores/playlist';
 
 export default function Player() {
+  const isVIP = usePlayerStore((state) => state.isVIP);
   const isPlaying = usePlayerStore((state) => state.isPlaying);
+  const shouldAutoPlay = usePlayerStore((state) => state.shouldAutoPlay);
   const name = usePlayerStore((state) => state.currentSong.name);
   const artist = usePlayerStore((state) => state.currentSong.artist);
   const picture = usePlayerStore((state) => state.currentSong.pic);
@@ -33,6 +37,7 @@ export default function Player() {
   const mode = usePlayerStore((state) => state.mode);
   const volume = usePlayerStore((state) => state.volume);
   const setIsPlaying = usePlayerStore((state) => state.setIsPlaying);
+  const setShouldAutoPlay = usePlayerStore((state) => state.setShouldAutoPlay);
   const loadSong = usePlayerStore((state) => state.loadSong);
   const setDuration = usePlayerStore((state) => state.setDuration);
   const setProgress = usePlayerStore((state) => state.setProgress);
@@ -47,21 +52,22 @@ export default function Player() {
   const [loading, setLoading] = useState(true);
   const audioRef = useRef<HTMLAudioElement>(null);
 
+  // load music
   useEffect(() => {
     const fetchSong = async () => {
       await loadSong(playlist[currentSongIndex].id);
     };
 
     if (playlist.length === 0) {
-      setLoading(true);
       return;
     }
 
     fetchSong().then(() => {
       setLoading(false);
     });
-  }, [loadSong, currentSongIndex, playlist]);
+  }, [loadSong, currentSongIndex, playlist, setIsPlaying]);
 
+  // switch music
   useEffect(() => {
     const audio = audioRef.current;
 
@@ -71,6 +77,7 @@ export default function Player() {
     audio.load();
 
     const onLoadedMetadata = () => {
+      if (shouldAutoPlay) audio.play();
       setDuration(audio.duration || 0);
     };
     const onTimeUpdate = () => {
@@ -89,33 +96,39 @@ export default function Player() {
       audio.removeEventListener('timeupdate', onTimeUpdate);
       audio.removeEventListener('ended', onEnded);
     };
-  }, [url, setDuration, setProgress, setIsPlaying]);
+  }, [url, setDuration, setProgress, setIsPlaying, shouldAutoPlay]);
 
+  // play/pause music
   useEffect(() => {
     const audio = audioRef.current;
+    if (!audio) return;
 
-    if (audio) {
-      if (isPlaying) {
-        audio.play();
-      } else {
-        audio.pause();
-      }
-    }
-
-    return () => {
-      if (audio) audio.pause();
-    };
+    if (isPlaying) audio.play();
+    else audio.pause();
   }, [isPlaying]);
+
+  useEffect(() => {
+    if (isVIP) {
+      setIsPlaying(false);
+      setProgress(0);
+    }
+  }, [isVIP, setIsPlaying, setProgress]);
 
   if (loading)
     return (
       <div className='flex justify-center items-center'>
-        <div>Loading...</div>
+        <ReloadIcon className='animate-spin' />
       </div>
     );
 
   return (
-    <Card>
+    <Card className='fixed bottom-10 z-50 bg-white shadow-lg rounded-t-lg'>
+      <Badge
+        variant='destructive'
+        className='absolute top-5 right-5'
+        hidden={!isVIP}>
+        VIP
+      </Badge>
       <CardContent className='flex justify-center items-center gap-10 w-[60vw]'>
         {/* Track Button */}
         <div className='flex items-center justify-center gap-3'>
@@ -123,13 +136,17 @@ export default function Player() {
             variant='outline'
             size='icon'
             className='hover:cursor-pointer'
-            onClick={() => playPrevSong()}>
+            onClick={() => {
+              playPrevSong();
+              setShouldAutoPlay(isPlaying);
+            }}>
             <TrackPreviousIcon />
           </Button>
           <Button
             variant='outline'
             size='icon'
             className='hover:cursor-pointer'
+            disabled={isVIP}
             onClick={() => setIsPlaying(!isPlaying)}>
             {isPlaying ? <PauseIcon /> : <PlayIcon />}
           </Button>
@@ -137,7 +154,10 @@ export default function Player() {
             variant='outline'
             size='icon'
             className='hover:cursor-pointer'
-            onClick={() => playNextSong()}>
+            onClick={() => {
+              playNextSong();
+              setShouldAutoPlay(isPlaying);
+            }}>
             <TrackNextIcon />
           </Button>
         </div>
@@ -157,7 +177,10 @@ export default function Player() {
               <span className='text-sm text-gray-500'>{artist}</span>
             </div>
           </div>
-          <Progress value={progress} max={duration} />
+          <Progress value={Math.min((progress / duration) * 100, 100)} />
+          <span className='hidden'>
+            {progress}/{duration}
+          </span>
           {url && <audio src={url} ref={audioRef}></audio>}
         </div>
 

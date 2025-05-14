@@ -1,14 +1,11 @@
-import Image from 'next/image';
+import { Song } from '@/common/interface';
+import Player from './client';
 
-export default function Home() {
-  return (
-    <div className='flex justify-center items-center h-screen'>
-      <main className='flex container mx-auto flex-col items-center justify-center'>
-        <div>name</div>
-        <div>artist</div>
-        <Image src='' alt='cover' />
-        <audio controls></audio>
-      </main>
-    </div>
-  );
+export default async function Home() {
+  const resp = await fetch('http://localhost:8080/netease/song/25638273', {
+    cache: 'no-store',
+  });
+  const data = (await resp.json()) as Song;
+
+  return <Player song={data} />;
 }

@@ -4,6 +4,13 @@ import { SimpleSong } from '@/common/interface';
 import { usePlaylistStore } from '@/stores/playlist';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import {
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 type PlaylistProps = {
   playlistProp: SimpleSong[];
@@ -12,6 +19,7 @@ type PlaylistProps = {
 export default function Playlist({ playlistProp }: PlaylistProps) {
   const playlist = usePlaylistStore((state) => state.playlist);
   const setPlalist = usePlaylistStore((state) => state.setPlaylist);
+  const setCurrentSongIndex = usePlaylistStore((state) => state.setCurrSongIdx);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,25 +36,43 @@ export default function Playlist({ playlistProp }: PlaylistProps) {
 
   return (
     <div className='flex flex-col items-center justify-center'>
-      {playlist.map((song, index) => (
-        <div
-          key={index}
-          className='flex items-center justify-between w-full p-2'>
-          <div className='flex items-center'>
-            <Image
-              src={song.picurl}
-              alt='cover'
-              width={50}
-              height={50}
-              className='rounded-full'
-            />
-            <div className='flex flex-col ml-2'>
-              <span className='font-bold'>{song.name}</span>
-              <span className='text-sm text-gray-500'>{song.artist}</span>
-            </div>
+      <DrawerContent>
+        <div className='mx-auto w-full max-w-sm'>
+          <DrawerHeader>
+            <DrawerTitle>播放列表</DrawerTitle>
+            <DrawerDescription className='sr-only'>播放列表</DrawerDescription>
+          </DrawerHeader>
+          <div className='p-4 pb-0'>
+            <ScrollArea className='h-[90vh]'>
+              {playlist.map((song, index) => (
+                <div
+                  key={index}
+                  className='flex items-center justify-between w-full p-2 '>
+                  <div
+                    className='flex items-center gap-3 w-[90%] p-2 hover:bg-gray-100 hover:cursor-pointer'
+                    onClick={() => {
+                      setCurrentSongIndex(index);
+                    }}>
+                    <Image
+                      src={song.picurl}
+                      alt='cover'
+                      width={50}
+                      height={50}
+                      className='w-[50px] h-[50px] rounded-md object-cover'
+                    />
+                    <div className='flex flex-col ml-2'>
+                      <span className='font-bold'>{song.name}</span>
+                      <span className='text-sm text-gray-500'>
+                        {song.artist}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </ScrollArea>
           </div>
         </div>
-      ))}
+      </DrawerContent>
     </div>
   );
 }

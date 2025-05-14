@@ -1,31 +1,42 @@
+import { Song } from '@/common/interface';
 import { create } from 'zustand';
 
 type PlayerStore = {
   isPlaying: boolean;
-  name: string;
-  artist: string;
-  picture: string;
-  url: string;
-  lyric: string;
+  currentSong: Song;
+  duration: number;
+  progress: number;
+  mode: 'loop' | 'random';
+  volume: number;
   setIsPlaying: (isPlaying: boolean) => void;
-  setName: (name: string) => void;
-  setArtist: (artist: string) => void;
-  setPicture: (picture: string) => void;
-  setUrl: (url: string) => void;
-  setLyric: (lyric: string) => void;
+  loadSong: (id: string) => Promise<void>;
+  setDuration: (duration: number) => void;
+  setProgress: (progress: number) => void;
+  setMode: (mode: 'loop' | 'random') => void;
+  setVolume: (volume: number) => void;
 };
 
 export const usePlayerStore = create<PlayerStore>((set) => ({
   isPlaying: false,
-  name: '',
-  artist: '',
-  picture: '',
-  url: '',
-  lyric: '',
+  currentSong: {
+    name: '',
+    artist: '',
+    pic: '',
+    url: '',
+    lrc: '',
+  },
+  duration: 100,
+  progress: 0,
+  mode: 'loop',
+  volume: 0.7,
   setIsPlaying: (isPlaying) => set({ isPlaying }),
-  setName: (name) => set({ name }),
-  setArtist: (artist) => set({ artist }),
-  setPicture: (picture) => set({ picture }),
-  setUrl: (url) => set({ url }),
-  setLyric: (lyric) => set({ lyric }),
+  loadSong: async (id) => {
+    const resp = await fetch(`/api/netease/song/${id}`);
+    const song = (await resp.json()) as Song;
+    set({ currentSong: song });
+  },
+  setDuration: (duration) => set({ duration }),
+  setProgress: (progress) => set({ progress }),
+  setMode: (mode) => set({ mode }),
+  setVolume: (volume) => set({ volume }),
 }));
